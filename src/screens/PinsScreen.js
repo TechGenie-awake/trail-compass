@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Share } from "react-native";
 import { Card, List, IconButton, Text, Snackbar } from "react-native-paper";
+import fmt from "../utils/geo";
 import { loadPins, savePins } from "../storage";
 
 export default function PinsScreen() {
@@ -9,15 +10,29 @@ export default function PinsScreen() {
 
   useEffect(() => {
     // TODO(5): Load saved pins into state on mount
+    const fetchPins = async () => {
+      const savedPins = await loadPins();
+      setPins(savedPins);
+    };
+    fetchPins();
   }, []);
 
   const remove = async (id) => {
     // TODO(6): Delete pin by id and persist via savePins(next)
+    const next = pins.filter((p) => p.id !== id);
+    setPins(next);
     setSnack("TODO: delete pin");
   };
 
   const sharePin = async (p) => {
     // TODO(7): Share pin location nicely (include timestamp if you like)
+    const message = `Pin Location:\nLatitude: ${Number(p.lat).toFixed(
+      6
+    )}\nLongitude: ${Number(p.lon).toFixed(6)}\nTimestamp: ${new Date(
+      p.ts
+    ).toLocaleString()}`;
+    await Share.share({ message });
+
     setSnack("TODO: share pin");
   };
 
@@ -33,7 +48,9 @@ export default function PinsScreen() {
               {pins.map((p) => (
                 <List.Item
                   key={p.id}
-                  title={`${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`}
+                  title={`${Number(p.lat).toFixed(6)}, ${Number(p.lon).toFixed(
+                    6
+                  )}`}
                   description={new Date(p.ts).toLocaleString()}
                   left={(props) => <List.Icon {...props} icon="map-marker" />}
                   right={() => (
